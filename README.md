@@ -11,7 +11,9 @@ A configuration tool, which automatically finds and sets any fields or propertie
 * C# 7.0 and greater
 
 ## Installation
-Under construction...
+With Visual Studio NuGet Package Manager: `PM> Install-Package PropertyManager`
+
+or download library from https://www.nuget.org/packages/PropertyManager/
 
 ## Getting started with Property Manager
 Most common way of using Property Manager is by invoking static API of `PropertyManager` class. This is used for batch application of all values.
