@@ -20,9 +20,6 @@ namespace PropertyManager.PropertyProvider {
         ///     Create new instance of class.
         /// </summary>
         /// <param name="filePath">File with values.</param>
-        /// <param name="encoding">
-        ///     Encoding of file. Default to null. If null is provided, UTF8 will be used.
-        /// </param>
         /// <exception cref="FileNotFoundException">
         ///     Thrown when file does not exists or is not accessible.
         /// </exception>
@@ -39,7 +36,7 @@ namespace PropertyManager.PropertyProvider {
         public string CommentSign { get; set; } = "#";
 
         /// <summary>
-        ///     File's enciding used while reading file.
+        ///     File's encoding used while reading file.
         /// </summary>
         private Encoding Encoding { get; set; } = Encoding.UTF8;
 
