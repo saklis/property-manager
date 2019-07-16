@@ -58,6 +58,7 @@
     <Compile Include="PropertyManager.cs" />
     <Compile Include="PropertyProvider\FileEditablePropertyProvider.cs" />
     <Compile Include="PropertyProvider\FilePropertyProvider.cs" />
+    <Compile Include="PropertyProvider\LiteDbEditablePropertyProvider.cs" />
     <Compile Include="PropertyProvider\LiteDbPropertyProvider.cs" />
   </ItemGroup>
   <ItemGroup>

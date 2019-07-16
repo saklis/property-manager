@@ -69,6 +69,9 @@ namespace PropertyManager.PropertyProvider {
         }
     }
 
+    /// <summary>
+    /// Model class to map db collection to.
+    /// </summary>
     internal class Configuration {
         public LiteDB.ObjectId Id { get; set; }
         public string PropertyName { get; set; }
