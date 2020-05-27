@@ -46,7 +46,9 @@ You can create and configure both providers using an initializer. Here's an exam
 ```c#
 var provider = new FilePropertyProvider("fileWithValues.ini") {
   CommentSign = "#",
-  Encoding = System.Text.Encoding.UTF8
+  Encoding = System.Text.Encoding.UTF8,
+  Culture = CultureInfo.InvariantCulture,
+  AllValuesAsString = false
 };
 ```
 
