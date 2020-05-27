@@ -26,7 +26,7 @@ namespace PropertyManager.PropertyProvider {
         public FilePropertyProvider(string filePath) {
             if (!File.Exists(filePath)) throw new FileNotFoundException("File not found or inaccessible.", filePath);
 
-            FilePath = filePath;
+            _filePath = filePath;
         }
 
         /// <summary>
@@ -38,19 +38,29 @@ namespace PropertyManager.PropertyProvider {
         /// <summary>
         ///     File's encoding used while reading file.
         /// </summary>
-        private Encoding Encoding { get; set; } = Encoding.UTF8;
+        public Encoding Encoding { get; set; } = Encoding.UTF8;
+
+        /// <summary>
+        ///     Culture Info used when parsing values. Very important for correct decimal sign recognition.
+        /// </summary>
+        public CultureInfo Culture { get; set; } = CultureInfo.InvariantCulture;
+
+        /// <summary>
+        ///     If set to TRUE, disables type recognition and treats all values as strings.
+        /// </summary>
+        public bool AllValuesAsString { get; set; } = false;
 
         /// <summary>
         ///     Path to file.
         /// </summary>
-        private string FilePath { get; }
+        private string _filePath { get; }
 
         /// <summary>
         ///     Parse read file, creating <see cref="PropertyEntry" /> objects.
         /// </summary>
         /// <returns>List of Property entries.</returns>
         public List<PropertyEntry> GetPropertyEntries() {
-            _allLines = File.ReadAllLines(FilePath, Encoding);
+            _allLines = File.ReadAllLines(_filePath, Encoding);
 
             List<PropertyEntry> entries = new List<PropertyEntry>(_allLines.Length);
 
@@ -73,18 +83,33 @@ namespace PropertyManager.PropertyProvider {
                     newEntry.Property = arguments[arguments.Length - 1];
 
                     // parse value and type
-                    if (int.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out int intValue)) {
-                        newEntry.PropertyType = typeof(int);
-                        newEntry.Value        = intValue;
-                    } else if (float.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out float floatValue)) {
-                        newEntry.PropertyType = typeof(float);
-                        newEntry.Value        = floatValue;
-                    } else if (bool.TryParse(value, out bool boolValue)) {
-                        newEntry.PropertyType = typeof(bool);
-                        newEntry.Value        = boolValue;
-                    } else {
+                    if (!AllValuesAsString)
+                    {
+                        if (int.TryParse(value, NumberStyles.Integer, Culture, out int intValue))
+                        {
+                            newEntry.PropertyType = typeof(int);
+                            newEntry.Value = intValue;
+                        }
+                        else if (float.TryParse(value, NumberStyles.Float, Culture, out float floatValue))
+                        {
+                            newEntry.PropertyType = typeof(float);
+                            newEntry.Value = floatValue;
+                        }
+                        else if (bool.TryParse(value, out bool boolValue))
+                        {
+                            newEntry.PropertyType = typeof(bool);
+                            newEntry.Value = boolValue;
+                        }
+                        else
+                        {
+                            newEntry.PropertyType = typeof(string);
+                            newEntry.Value = value.Replace("\n", Environment.NewLine).Replace("\\n", Environment.NewLine);
+                        }
+                    }
+                    else
+                    {
                         newEntry.PropertyType = typeof(string);
-                        newEntry.Value        = value.Replace("\n", Environment.NewLine).Replace("\\n", Environment.NewLine);
+                        newEntry.Value = value.Replace("\n", Environment.NewLine).Replace("\\n", Environment.NewLine);
                     }
 
                     entries.Add(newEntry);

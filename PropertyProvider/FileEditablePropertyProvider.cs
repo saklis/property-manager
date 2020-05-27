@@ -26,7 +26,7 @@ namespace PropertyManager.PropertyProvider {
         public FileEditablePropertyProvider(string filePath) {
             if (!File.Exists(filePath)) throw new FileNotFoundException("File not found or inaccessible.", filePath);
 
-            FilePath = filePath;
+            _filePath = filePath;
         }
 
         /// <summary>
@@ -38,19 +38,29 @@ namespace PropertyManager.PropertyProvider {
         /// <summary>
         ///     File's encoding used while reading file.
         /// </summary>
-        private Encoding Encoding { get; set; } = Encoding.UTF8;
+        public Encoding Encoding { get; set; } = Encoding.UTF8;
+
+        /// <summary>
+        ///     Culture Info used when parsing values. Very important for correct decimal sign recognition.
+        /// </summary>
+        public CultureInfo Culture { get; set; } = CultureInfo.InvariantCulture;
+
+        /// <summary>
+        ///     If set to TRUE, disables type recognition and treats all values as strings.
+        /// </summary>
+        public bool AllValuesAsString { get; set; } = false;
 
         /// <summary>
         ///     Path to file.
         /// </summary>
-        private string FilePath { get; }
+        private string _filePath { get; }
 
         /// <summary>
         ///     Get list of property entries.
         /// </summary>
         /// <returns>List of property entries.</returns>
         public List<PropertyEntry> GetPropertyEntries() {
-            _allLines = File.ReadAllLines(FilePath, Encoding);
+            _allLines = File.ReadAllLines(_filePath, Encoding);
 
             List<PropertyEntry> lines = new List<PropertyEntry>(_allLines.Length);
             foreach (string line in _allLines) {
@@ -78,18 +88,33 @@ namespace PropertyManager.PropertyProvider {
                     newLine.Property = arguments[arguments.Length - 1];
 
                     // parse value and type
-                    if (int.TryParse(value, out int intValue)) {
-                        newLine.PropertyType = typeof(int);
-                        newLine.Value        = intValue;
-                    } else if (float.TryParse(value, out float floatValue)) {
-                        newLine.PropertyType = typeof(float);
-                        newLine.Value        = floatValue;
-                    } else if (bool.TryParse(value, out bool boolValue)) {
-                        newLine.PropertyType = typeof(bool);
-                        newLine.Value        = boolValue;
-                    } else {
+                    if (!AllValuesAsString)
+                    {
+                        if (int.TryParse(value, NumberStyles.Integer, Culture, out int intValue))
+                        {
+                            newLine.PropertyType = typeof(int);
+                            newLine.Value = intValue;
+                        }
+                        else if (float.TryParse(value, NumberStyles.Float, Culture, out float floatValue))
+                        {
+                            newLine.PropertyType = typeof(float);
+                            newLine.Value = floatValue;
+                        }
+                        else if (bool.TryParse(value, out bool boolValue))
+                        {
+                            newLine.PropertyType = typeof(bool);
+                            newLine.Value = boolValue;
+                        }
+                        else
+                        {
+                            newLine.PropertyType = typeof(string);
+                            newLine.Value = value.Replace("\n", Environment.NewLine).Replace("\\n", Environment.NewLine);
+                        }
+                    }
+                    else
+                    {
                         newLine.PropertyType = typeof(string);
-                        newLine.Value        = value.Replace("\n", Environment.NewLine).Replace("\\n", Environment.NewLine);
+                        newLine.Value = value.Replace("\n", Environment.NewLine).Replace("\\n", Environment.NewLine);
                     }
                 }
 
@@ -124,7 +149,7 @@ namespace PropertyManager.PropertyProvider {
                     throw new InvalidCastException("Unable to cast entry to PropertyLine type. This should have never happen. Something went wrong while creating the Manager, perhaps?");
                 }
 
-            File.WriteAllLines(FilePath, lineList.ToArray(), Encoding);
+            File.WriteAllLines(_filePath, lineList.ToArray(), Encoding);
         }
     }
 }
